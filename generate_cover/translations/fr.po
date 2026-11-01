@@ -7,13 +7,14 @@
 # Grant Drake, 2022
 # lentrad <lentrad@gmail.com>, 2022
 # Ptit Prince <leporello1791@gmail.com>, 2022
+# Jean Pierre, 2026
 # 
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "POT-Creation-Date: 2026-05-05 21:31+1000\n"
 "PO-Revision-Date: 2022-09-19 15:06+0000\n"
-"Last-Translator: Ptit Prince <leporello1791@gmail.com>, 2022\n"
+"Last-Translator: Jean Pierre, 2026\n"
 "Language-Team: French (https://app.transifex.com/calibre/teams/19337/fr/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -230,7 +231,7 @@ msgstr " Abandonner les Modifications "
 
 #: dialogs.py:136
 msgid "Revert unsaved changes"
-msgstr ""
+msgstr "Annuler les modifications non enregistrées"
 
 #: dialogs.py:138
 msgid "Save Changes"
@@ -238,11 +239,11 @@ msgstr " Enregistrer les Modifications "
 
 #: dialogs.py:139
 msgid "Overwrite current profile with these changes"
-msgstr ""
+msgstr "Remplacer le profil actuel par ces modifications"
 
 #: dialogs.py:158
 msgid "Generate && Save"
-msgstr ""
+msgstr "Générer && Enregistrer"
 
 #: dialogs.py:159
 msgid "Generate cover using these settings and save for future usage"
@@ -252,15 +253,15 @@ msgstr ""
 
 #: dialogs.py:161
 msgid "Generate && Revert"
-msgstr ""
+msgstr "Générer && Annuler"
 
 #: dialogs.py:162
 msgid "Generate cover using these settings then discard them"
-msgstr ""
+msgstr "Générer une couverture à l'aide de ces paramètres, puis les supprimer"
 
 #: dialogs.py:166
 msgid "Cancel action"
-msgstr ""
+msgstr "Annuler l'action"
 
 #: dialogs.py:450 dialogs.py:528
 msgid "Saved Settings:"
@@ -553,21 +554,23 @@ msgstr "Sélectionner une couleur pour le %s"
 
 #: dialogs.py:1063
 msgid "Reset %s fill color"
-msgstr ""
+msgstr "Réinitialiser %s couleur de remplissage"
 
 #: dialogs.py:1069
 msgid "Select %s fill color"
-msgstr ""
+msgstr "Sélectionnez %s couleur de remplissage"
 
 #: dialogs.py:1080
 msgid "Use the same fill color for all text"
-msgstr ""
+msgstr "Utilisez la même couleur de remplissage pour tout le texte"
 
 #: dialogs.py:1081
 msgid ""
 "When checked, the fill color is used for all text.\n"
 "When unchecked, you can set different fill colors for each text type."
 msgstr ""
+"Lorsque cette case est cochée, la couleur de remplissage s'applique à tout le texte.\n"
+"Lorsque cette case n'est pas cochée, vous pouvez définir des couleurs de remplissage différentes pour chaque type de texte."
 
 #: dialogs.py:1092
 msgid "Left aligned"
@@ -767,7 +770,7 @@ msgstr "Autre options :"
 
 #: dialogs.py:1386
 msgid "Custom text:"
-msgstr ""
+msgstr "Texte personnalisé :"
 
 #: dialogs.py:1396
 msgid "Swap author LN,FN to FN LN"

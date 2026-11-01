@@ -32,7 +32,8 @@ def swap_author_names(author):
 class TextLine(object):
 
     def __init__(self, text, font_name, font_size,
-                 bottom_margin=30, align='center', fill_color='#000000'):
+                 bottom_margin=30, align='center', fill_color='#000000',
+                 bold=False, italic=False, underline=False):
         self.text = force_unicode(text)
         self.bottom_margin = bottom_margin
         self.fill_color = fill_color
@@ -42,13 +43,39 @@ class TextLine(object):
             from PyQt5.Qt import QFont, Qt
         self.font = QFont(font_name) if font_name else QFont()
         self.font.setPixelSize(font_size)
+        self.font.setBold(bool(bold))
+        self.font.setItalic(bool(italic))
+        self.font.setUnderline(bool(underline))
+        self._font_align = align
         self._align = {'center': Qt.AlignHCenter,
                        'left': Qt.AlignLeft, 'right': Qt.AlignRight}[align]
+        self.backdrop_enabled = False
+        self.backdrop_color = '#000000'
+        self.backdrop_opacity = 70
+        self.backdrop_padding = 4
+
+    def apply_element_options(self, field):
+        self.text_padding = field.get(
+            cfg.KEY_FIELD_TEXT_PADDING,
+            cfg.DEFAULT_ELEMENT_OPTIONS[cfg.KEY_FIELD_TEXT_PADDING])
+        self.rotation = field.get(cfg.KEY_FIELD_ROTATION, 0)
+        self.rotation_side = field.get(cfg.KEY_FIELD_ROTATION_SIDE, 'left')
+        self.backdrop_enabled = field.get(cfg.KEY_FIELD_BACKDROP, False)
+        self.backdrop_full_width = field.get(
+            cfg.KEY_FIELD_BACKDROP_FULL_WIDTH, False)
+        self.backdrop_color = field.get(cfg.KEY_FIELD_BACKDROP_COLOR, '#000000')
+        self.backdrop_opacity = field.get(cfg.KEY_FIELD_BACKDROP_OPACITY, 70)
+        self.backdrop_padding = field.get(
+            cfg.KEY_FIELD_PADDING,
+            cfg.DEFAULT_ELEMENT_OPTIONS[cfg.KEY_FIELD_PADDING])
 
 
 def get_textline(text, font_info, margin, fill_color='#000000'):
     return TextLine(text, font_info['name'], font_info['size'], margin,
-                    align=font_info['align'], fill_color=fill_color)
+                    align=font_info['align'], fill_color=fill_color,
+                    bold=font_info.get('bold', False),
+                    italic=font_info.get('italic', False),
+                    underline=font_info.get('underline', False))
 
 
 class DrawingWand(object):
@@ -60,6 +87,25 @@ class DrawingWand(object):
 
 def create_colored_text_wand(line):
     return DrawingWand(**{'fill_color': line.fill_color, 'stroke_color': None, 'font': line.font, 'align': line._align})
+
+
+def backdrop_padding_for_rotation(padding, angle):
+    if angle == 90:
+        return {
+            'left': padding['top'], 'right': padding['bottom'],
+            'top': padding['right'], 'bottom': padding['left'],
+        }
+    if angle == 180:
+        return {
+            'left': padding['right'], 'right': padding['left'],
+            'top': padding['bottom'], 'bottom': padding['top'],
+        }
+    if angle == 270:
+        return {
+            'left': padding['bottom'], 'right': padding['top'],
+            'top': padding['left'], 'bottom': padding['right'],
+        }
+    return padding
 
 
 def add_border(img, border_width, border_color, bgcolor):
@@ -78,6 +124,8 @@ def draw_sized_text(img, dw, line, top, left_margin, right_margin,
         from qt.core import QPainter, Qt, QRect, QColor
     except ImportError:
         from PyQt5.Qt import QPainter, Qt, QRect, QColor
+    left_margin += line.text_padding['left']
+    right_margin += line.text_padding['right']
     total_margin = left_margin + right_margin
     if img.size[0] - total_margin <= 0:
         total_margin = 0
@@ -122,10 +170,54 @@ def draw_sized_text(img, dw, line, top, left_margin, right_margin,
                     line.text = '*** TEXT TOO LARGE TO AUTO-FIT ***'
                     break
         p.setFont(line.font)
-        br = p.drawText(QRect(
-            int(left_margin), int(top), int(img.size[0] - left_margin - right_margin), int(img.size[1] - top)), 
-            flags | Qt.TextWordWrap, line.text)
-        return br.bottom()
+        text_rect = QRect(
+            int(left_margin), int(top), int(img.size[0] - left_margin - right_margin), int(img.size[1] - top))
+        text_rect_y = text_rect.y()
+        if line.rotation == 180:
+            p.translate(text_rect.x() + text_rect.width(),
+                        text_rect.y() + text_rect.height())
+            p.rotate(180)
+            text_rect = QRect(0, 0, text_rect.width(), text_rect.height())
+        if line.backdrop_enabled:
+            backdrop_rect = p.boundingRect(text_rect, flags | Qt.TextWordWrap, line.text)
+            padding = backdrop_padding_for_rotation(
+                line.backdrop_padding, line.rotation)
+            if line.backdrop_full_width:
+                backdrop_rect = QRect(
+                    0, backdrop_rect.y(), int(img.size[0]), backdrop_rect.height())
+                backdrop_rect.adjust(
+                    0, -int(padding['top']), 0, int(padding['bottom']))
+            else:
+                backdrop_rect.adjust(
+                    -int(padding['left']), -int(padding['top']),
+                    int(padding['right']), int(padding['bottom']))
+            backdrop_color = QColor(line.backdrop_color)
+            if backdrop_color.isValid():
+                backdrop_color.setAlpha(int(line.backdrop_opacity * 255 / 100))
+                p.fillRect(backdrop_rect, backdrop_color)
+        br = p.drawText(text_rect, flags | Qt.TextWordWrap, line.text)
+        return text_rect_y + br.height() if line.rotation == 180 else br.bottom()
+    finally:
+        p.end()
+
+
+def measure_text_height(img, line, left_margin, right_margin):
+    try:
+        from qt.core import QPainter, Qt, QRect
+    except ImportError:
+        from PyQt5.Qt import QPainter, Qt, QRect
+    left_margin += line.text_padding['left']
+    right_margin += line.text_padding['right']
+    if img.size[0] - left_margin - right_margin <= 0:
+        left_margin = right_margin = 0
+    text_width = max(1, img.size[0] - left_margin - right_margin)
+    p = QPainter(img.img)
+    try:
+        p.setFont(line.font)
+        bounds = p.boundingRect(
+            QRect(0, 0, text_width, 100000),
+            line._align | Qt.TextWordWrap, line.text)
+        return bounds.height()
     finally:
         p.end()
 
@@ -150,7 +242,121 @@ def scaleup_image(width, height, pwidth, pheight):
     return True, int(width), int(height)
 
 
-def create_cover_page(top_lines, bottom_lines, display_image, options,
+def prepare_rotated_field(lines, edge_length):
+    try:
+        from qt.core import QFontMetrics, Qt, QRect
+    except ImportError:
+        from PyQt5.Qt import QFontMetrics, Qt, QRect
+    padding = lines[0].text_padding
+    backdrop_padding = (
+        lines[0].backdrop_padding if lines[0].backdrop_enabled else
+        dict.fromkeys(('top', 'bottom', 'left', 'right'), 0))
+    vertical_backdrop_padding = (
+        dict.fromkeys(('top', 'bottom'), 0)
+        if lines[0].backdrop_full_width else backdrop_padding)
+    local_backdrop_padding = (
+        backdrop_padding_for_rotation(backdrop_padding, lines[0].rotation)
+        if lines[0].backdrop_enabled and not lines[0].backdrop_full_width else
+        dict.fromkeys(('top', 'bottom', 'left', 'right'), 0))
+    available_length = max(
+        1, edge_length - padding['top'] - padding['bottom'] -
+        vertical_backdrop_padding['top'] - vertical_backdrop_padding['bottom'])
+    text = '\n'.join(line.text for line in lines)
+    font_metrics = QFontMetrics(lines[0].font)
+    bounds = font_metrics.boundingRect(
+        QRect(0, 0, available_length, 5000), Qt.TextWordWrap, text)
+    text_width = max(1, min(available_length, bounds.width()))
+    text_height = max(font_metrics.height(), bounds.height())
+    return {
+        'lines': lines,
+        'angle': lines[0].rotation,
+        'side': lines[0].rotation_side,
+        'text': text,
+        'text_width': text_width,
+        'text_height': text_height,
+        'rail_width': (
+            text_height + padding['left'] + padding['right'] +
+            backdrop_padding['left'] + backdrop_padding['right']),
+        'padding': padding,
+        'backdrop_padding': backdrop_padding,
+        'local_backdrop_padding': local_backdrop_padding,
+        'vertical_backdrop_padding': vertical_backdrop_padding,
+    }
+
+
+def draw_rotated_field(img, field, x, top, edge_length):
+    try:
+        from qt.core import QPainter, Qt, QRect, QColor
+    except ImportError:
+        from PyQt5.Qt import QPainter, Qt, QRect, QColor
+    lines = field['lines']
+    angle = field['angle']
+    padding = field['padding']
+    backdrop_padding = field['backdrop_padding']
+    local_backdrop_padding = field['local_backdrop_padding']
+    vertical_backdrop_padding = field['vertical_backdrop_padding']
+    text_width = field['text_width']
+    text_height = field['text_height']
+    available_length = max(
+        1, edge_length - padding['top'] - padding['bottom'] -
+        vertical_backdrop_padding['top'] - vertical_backdrop_padding['bottom'])
+    align = lines[0]._font_align
+    align_factor = {'left': 0, 'center': 0.5, 'right': 1}[align]
+    aligned_offset = max(0, available_length - text_width) * align_factor
+    text_top = (top + padding['top'] + vertical_backdrop_padding['top'] +
+                aligned_offset)
+
+    p = QPainter(img.img)
+    try:
+        try:
+            p.setRenderHint(p.RenderHint.TextAntialiasing)
+        except AttributeError:
+            p.setRenderHint(p.TextAntialiasing)
+        p.save()
+        if lines[0].backdrop_enabled and lines[0].backdrop_full_width:
+            full_backdrop_padding = lines[0].backdrop_padding
+            backdrop_width = (
+                text_height + int(full_backdrop_padding['left']) +
+                int(full_backdrop_padding['right']))
+            backdrop_left = x + padding['left']
+            backdrop_rect = QRect(
+                int(backdrop_left), 0, int(backdrop_width), int(img.size[1]))
+            backdrop_color = QColor(lines[0].backdrop_color)
+            if backdrop_color.isValid():
+                backdrop_color.setAlpha(int(lines[0].backdrop_opacity * 255 / 100))
+                p.fillRect(backdrop_rect, backdrop_color)
+        if angle == 90:
+            p.translate(
+                x + padding['left'] + backdrop_padding['left'] + text_height,
+                text_top)
+            p.rotate(90)
+        else:
+            p.translate(
+                x + padding['left'] + backdrop_padding['left'],
+                text_top + text_width)
+            p.rotate(270)
+
+        text_rect = QRect(0, 0, int(text_width), int(text_height))
+        if lines[0].backdrop_enabled and not lines[0].backdrop_full_width:
+            backdrop_rect = QRect(text_rect)
+            backdrop_rect.adjust(
+                -int(local_backdrop_padding['left']),
+                -int(local_backdrop_padding['top']),
+                int(local_backdrop_padding['right']),
+                int(local_backdrop_padding['bottom']))
+            backdrop_color = QColor(lines[0].backdrop_color)
+            if backdrop_color.isValid():
+                backdrop_color.setAlpha(int(lines[0].backdrop_opacity * 255 / 100))
+                p.fillRect(backdrop_rect, backdrop_color)
+        p.setFont(lines[0].font)
+        p.setPen(QColor(lines[0].fill_color))
+        p.drawText(text_rect, Qt.TextWordWrap | Qt.AlignLeft | Qt.AlignTop, field['text'])
+        p.restore()
+    finally:
+        p.end()
+
+
+def create_cover_page(top_lines, bottom_lines, rotated_fields, display_image, options,
                       image_path, output_format='jpg'):
     from calibre.gui2 import ensure_app
     ensure_app()
@@ -168,13 +374,23 @@ def create_cover_page(top_lines, bottom_lines, display_image, options,
         margins['top'], margins['bottom'], margins['left'],
         margins['right'], margins['image'])
     left_mgn = min([left_mgn, (width / 2) - 10])
-    left_text_margin = left_mgn if left_mgn > 0 else 10
     right_mgn = min([right_mgn, (width / 2) - 10])
-    right_text_margin = right_mgn if right_mgn > 0 else 10
+    edge_length = max(1, height - top_mgn - bottom_mgn)
+    rotated_fields = {
+        side: [prepare_rotated_field(field, edge_length) for field in rotated_fields[side]]
+        for side in ('left', 'right')
+    }
+    left_rail_width = sum(field['rail_width'] for field in rotated_fields['left'])
+    right_rail_width = sum(field['rail_width'] for field in rotated_fields['right'])
+    content_left_margin = left_mgn + left_rail_width
+    content_right_margin = right_mgn + right_rail_width
+    left_text_margin = content_left_margin if content_left_margin > 0 else 10
+    right_text_margin = content_right_margin if content_right_margin > 0 else 10
 
     colors = options[cfg.KEY_COLORS]
     bgcolor, border_color = (
         colors['background'], colors['border'])
+    image_border_color = colors.get(cfg.KEY_IMAGE_BORDER_COLOR, border_color)
     auto_reduce_font = options.get(cfg.KEY_FONTS_AUTOREDUCED, False)
     borders = options[cfg.KEY_BORDERS]
     (cover_border_width, image_border_width) = (
@@ -193,46 +409,64 @@ def create_cover_page(top_lines, bottom_lines, display_image, options,
         logo = Image()
         logo.open(image_path)
         outer_margin = 0 if cover_border_width == 0 else cover_border_width
-        logo.size = (width - outer_margin * 2, height - outer_margin * 2)
-        left = top = outer_margin
+        left = outer_margin + image_mgn['left']
+        top = outer_margin + image_mgn['top']
+        logo.size = (
+            max(1, width - outer_margin * 2 - image_mgn['left'] - image_mgn['right']),
+            max(1, height - outer_margin * 2 - image_mgn['top'] - image_mgn['bottom']))
         canvas.compose(logo, int(left), int(top))
 
     top = top_mgn
     if len(top_lines) > 0:
         for line in top_lines:
             twand = create_colored_text_wand(line)
+            text_top = top + line.text_padding['top']
             top = draw_sized_text(
-                canvas, twand, line, top, left_text_margin,
+                canvas, twand, line, text_top, left_text_margin,
                 right_text_margin, auto_reduce_font)
-            top += line.bottom_margin
-        top -= top_lines[-1].bottom_margin
+            top = text_top + measure_text_height(
+                canvas, line, left_text_margin, right_text_margin)
+            top += line.text_padding['bottom']
 
     if len(bottom_lines) > 0:
         # Draw this on a fake canvas so can determine the space required
         fake_canvas = create_canvas(width, height, bgcolor)
-        footer_height = 0
+        footer_top = height - bottom_mgn
         for line in bottom_lines:
             line.twand = create_colored_text_wand(line)
-            footer_height = draw_sized_text(
-                fake_canvas, line.twand, line, footer_height, left_text_margin,
+            text_top = footer_top + line.text_padding['top']
+            draw_sized_text(
+                fake_canvas, line.twand, line, text_top, left_text_margin,
                 right_text_margin, auto_reduce_font)
-            footer_height += line.bottom_margin
-        footer_height -= bottom_lines[-1].bottom_margin
+            footer_top = text_top + measure_text_height(
+                fake_canvas, line, left_text_margin, right_text_margin)
+            footer_top += line.text_padding['bottom']
 
-        footer_top = height - footer_height - bottom_mgn
-        bottom = footer_top
-        # Re-use the text wand from previously which we will have adjusted the
-        # font size on
-        for line in bottom_lines:
-            bottom = draw_sized_text(
-                canvas, line.twand, line, bottom, left_text_margin,
+        footer_bottom = height - bottom_mgn
+        for line in reversed(bottom_lines):
+            text_height = measure_text_height(
+                canvas, line, left_text_margin, right_text_margin)
+            text_top = footer_bottom - line.text_padding['bottom'] - text_height
+            draw_sized_text(
+                canvas, line.twand, line, text_top, left_text_margin,
                 right_text_margin, auto_reduce_font=False)
-            bottom += line.bottom_margin
-        available = (width - (left_mgn + right_mgn),
-                     int(footer_top - top) - (image_mgn * 2))
+            footer_bottom = text_top - line.text_padding['top']
+        footer_top = footer_bottom
+        available = (max(1, width - (content_left_margin + content_right_margin + image_mgn['left'] + image_mgn['right'])),
+                     int(footer_top - top) - image_mgn['top'] - image_mgn['bottom'])
     else:
-        available = (width - (left_mgn + right_mgn),
-                     int(height - top) - bottom_mgn - (image_mgn * 2))
+        available = (max(1, width - (content_left_margin + content_right_margin + image_mgn['left'] + image_mgn['right'])),
+                     int(height - top) - bottom_mgn - image_mgn['top'] - image_mgn['bottom'])
+
+    left_x = left_mgn
+    for field in rotated_fields['left']:
+        draw_rotated_field(canvas, field, left_x, top_mgn, edge_length)
+        left_x += field['rail_width']
+
+    right_x = width - right_mgn
+    for field in rotated_fields['right']:
+        right_x -= field['rail_width']
+        draw_rotated_field(canvas, field, right_x, top_mgn, edge_length)
 
     if not is_background_image and display_image and available[1] > 40:
         logo = Image()
@@ -247,10 +481,11 @@ def create_cover_page(top_lines, bottom_lines, display_image, options,
         if scaled:
             logo.size = (lwidth, lheight)
         if image_border_width > 0:
-            logo = add_border(logo, image_border_width, border_color, bgcolor)
+            logo = add_border(logo, image_border_width, image_border_color, bgcolor)
 
-        left = int(max(0, (width - lwidth) / 2.))
-        top = top + image_mgn + ((available[1] - lheight) / 2.)
+        left = int(max(0, content_left_margin + image_mgn['left'] +
+                   (available[0] - lwidth) / 2.))
+        top = top + image_mgn['top'] + ((available[1] - lheight) / 2.)
         canvas.compose(logo, int(left), int(top))
 
     return canvas.export(output_format)
@@ -289,43 +524,46 @@ def generate_cover_for_book(mi, options=None, db=None):
     if not options:
         options = cfg.plugin_prefs[cfg.STORE_CURRENT]
     title, author_string, series_string = get_title_author_series(mi, options)
-    custom_text = options.get(cfg.KEY_CUSTOM_TEXT, None)
-    if custom_text:
+    custom_text_fields = [options.get(key, '') for key in cfg.KEY_CUSTOM_TEXT_FIELDS]
+    if any(custom_text_fields):
         from calibre.ebooks.metadata.book.formatter import SafeFormat
-        custom_text = SafeFormat().safe_format(
-            custom_text, mi, 'GC template error', mi).replace('<br/>','\n')
+        custom_text_fields = [
+            SafeFormat().safe_format(text, mi, 'GC template error', mi).replace('<br/>','\n') if text else ''
+            for text in custom_text_fields]
 
     fonts = options[cfg.KEY_FONTS]
-    margin = options[cfg.KEY_MARGINS]['text']
     colors = options[cfg.KEY_COLORS]
     use_same_fill_color = options.get(cfg.KEY_FILL_COLORS_LINKED, True)
     
     # Determine fill colors for each text type
     title_fill = colors.get('title_fill', '#000000')
     if use_same_fill_color:
-        author_fill = series_fill = custom_fill = title_fill
+        author_fill = series_fill = title_fill
     else:
         author_fill = colors.get('author_fill', title_fill)
         series_fill = colors.get('series_fill', title_fill)
-        custom_fill = colors.get('custom_fill', title_fill)
     
     content_lines = {}
     content_lines['Title'] = [
-        get_textline(title_line.strip(), fonts['title'], margin, title_fill)
+        get_textline(title_line.strip(), fonts['title'], 0, title_fill)
         for title_line in split_and_replace_newlines(title)]
     content_lines['Author'] = [
-        get_textline(author_line.strip(), fonts['author'], margin, author_fill)
+        get_textline(author_line.strip(), fonts['author'], 0, author_fill)
         for author_line in split_and_replace_newlines(author_string)]
     if series_string:
         content_lines['Series'] = [
-            get_textline(series_line.strip(), fonts['series'], margin, series_fill)
+            get_textline(series_line.strip(), fonts['series'], 0, series_fill)
             for series_line in split_and_replace_newlines(series_string)]
-    if custom_text:
-        content_lines['Custom Text'] = [
-            get_textline(ct.strip(), fonts['custom'], margin, custom_fill)
-            for ct in split_and_replace_newlines(custom_text)]
+    for index, custom_text in enumerate(custom_text_fields, 1):
+        if custom_text:
+            custom_type = 'custom' if index == 1 else 'custom%d' % index
+            custom_fill = title_fill if use_same_fill_color else colors.get(custom_type + '_fill', title_fill)
+            content_lines['Custom Text %d' % index] = [
+                get_textline(ct.strip(), fonts[custom_type], 0, custom_fill)
+                for ct in split_and_replace_newlines(custom_text)]
     top_lines = []
     bottom_lines = []
+    rotated_fields = {'left': [], 'right': []}
     field_order = options[cfg.KEY_FIELD_ORDER]
     above_image = True
     display_image = False
@@ -340,10 +578,14 @@ def generate_cover_for_book(mi, options=None, db=None):
         if field['display']:
             lines = content_lines[field_name]
             for line in lines:
-                if above_image:
-                    top_lines.append(line)
-                else:
-                    bottom_lines.append(line)
+                line.apply_element_options(field)
+            if field.get(cfg.KEY_FIELD_ROTATION, 0) in (90, 270):
+                side = field.get(cfg.KEY_FIELD_ROTATION_SIDE, 'left')
+                rotated_fields[side].append(lines)
+            elif above_image:
+                top_lines.extend(lines)
+            else:
+                bottom_lines.extend(lines)
 
     image_name = options[cfg.KEY_IMAGE_FILE]
     image_path = None
@@ -358,4 +600,4 @@ def generate_cover_for_book(mi, options=None, db=None):
     if image_path is None or not os.path.exists(image_path):
         image_path = I('library.png')  # noqa
     return create_cover_page(
-        top_lines, bottom_lines, display_image, options, image_path)
+        top_lines, bottom_lines, rotated_fields, display_image, options, image_path)

@@ -47,8 +47,7 @@ msgid ""
 "Are you sure you want to change your settings in this library for this "
 "plugin?"
 msgstr ""
-"Вы уверены, что хотите изменить настройки в этой библиотеке для этого "
-"плагина?"
+"Уверены, что хотите изменить настройки в этой библиотеке для этого плагина?"
 
 #: ..\common\common_dialogs.py:190 ..\common\common_dialogs.py:210
 msgid ""
@@ -327,11 +326,11 @@ msgstr "Вы не можете убрать умолчальную настро�
 
 #: dialogs.py:596 dialogs.py:840 dialogs.py:1574 dialogs.py:1593
 msgid "Are you sure?"
-msgstr "Вы уверены?"
+msgstr "Уверены?"
 
 #: dialogs.py:597
 msgid "Are you sure you want to remove the '%s' setting?"
-msgstr "Вы уверены, что хотите удалить настройку '%s'?"
+msgstr "Уверены, что хотите удалить настройку «%s»?"
 
 #: dialogs.py:610 dialogs.py:787 dialogs.py:813
 msgid "Cannot rename"

@@ -1,5 +1,20 @@
 # Generate Cover Change Log
 
+## [2.4.2] - 2026-11-01 (beta for 2.5.0)
+### Added
+- Major redesign of the UI with many new options added.
+- Selecting a field in the Field Order list of the Contents tab now shows contextual options below it.
+- Configure top, bottom, left, and right padding for text fields, images, and backdrops.
+- Text elements can be rotated to be placed on the left or right edge.
+- Up to 3 custom text fields, offering granular control of additional fields/positions to display.
+- Allow a backdrop to be added to each text element, for readability with background images or impact.
+- Stretch image as cover background now respects the image padding options specified as a margin.
+- Many other tweaks and adjustments, removal of the Fonts tab etc.
+- Japanese translation
+- Slovak translation
+- Serbian (Latin) translation
+- Swedish translation
+
 ## [2.4.1] - 2026-07-08
 ### Added
 - Czech translation
