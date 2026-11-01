@@ -1,19 +1,21 @@
 # SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR ORGANIZATION
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the Generate Cover package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
+#, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2026-11-01 15:43+1000\n"
+"Project-Id-Version: Generate Cover\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-11-01 12:10+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=cp1252\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: pygettext.py 1.5\n"
-
 
 #: ..\common\common_dialogs.py:84 config.py:616
 msgid "Keyboard shortcuts"
@@ -108,6 +110,7 @@ msgid "No books selected"
 msgstr ""
 
 #: action.py:86
+#, python-format
 msgid "Corrupted setting: \"%s\" has incorrect internal name of: \"%s\")"
 msgstr ""
 
@@ -128,6 +131,7 @@ msgid "Missing metadata passed for book to generate cover"
 msgstr ""
 
 #: action.py:148
+#, python-format
 msgid "No cover settings exist named: \"%s\""
 msgstr ""
 
@@ -155,7 +159,7 @@ msgstr ""
 msgid "View data stored in the library database for this plugin"
 msgstr ""
 
-#: config.py:626 dialogs.py:1645
+#: config.py:626 dialogs.py:1647
 msgid "&Help"
 msgstr ""
 
@@ -164,6 +168,7 @@ msgid "Cancel"
 msgstr ""
 
 #: dialogs.py:95
+#, python-format
 msgid "Generating %d covers"
 msgstr ""
 
@@ -176,6 +181,7 @@ msgid "Unsaved Changes"
 msgstr ""
 
 #: dialogs.py:131 dialogs.py:154
+#, python-format
 msgid "You have unsaved changes to the <b>%s</b> setting.<br>"
 msgstr ""
 
@@ -293,11 +299,12 @@ msgstr ""
 msgid "You cannot remove the default setting"
 msgstr ""
 
-#: dialogs.py:627 dialogs.py:871 dialogs.py:1720 dialogs.py:1739
+#: dialogs.py:627 dialogs.py:871 dialogs.py:1722 dialogs.py:1741
 msgid "Are you sure?"
 msgstr ""
 
 #: dialogs.py:628
+#, python-format
 msgid "Are you sure you want to remove the '%s' setting?"
 msgstr ""
 
@@ -342,6 +349,7 @@ msgid "Export completed"
 msgstr ""
 
 #: dialogs.py:777
+#, python-format
 msgid "Cover setting exported to<br>%s"
 msgstr ""
 
@@ -386,6 +394,7 @@ msgid "You cannot remove this image"
 msgstr ""
 
 #: dialogs.py:872
+#, python-format
 msgid "Are you sure you want to delete the image: %s"
 msgstr ""
 
@@ -721,7 +730,7 @@ msgstr ""
 msgid "Alignment:"
 msgstr ""
 
-#: dialogs.py:1463 dialogs.py:1498
+#: dialogs.py:1463 dialogs.py:1500
 msgid "Left"
 msgstr ""
 
@@ -729,7 +738,7 @@ msgstr ""
 msgid "Centre"
 msgstr ""
 
-#: dialogs.py:1465 dialogs.py:1499
+#: dialogs.py:1465 dialogs.py:1501
 msgid "Right"
 msgstr ""
 
@@ -749,95 +758,103 @@ msgstr ""
 msgid "Rotation:"
 msgstr ""
 
-#: dialogs.py:1489
+#. TRANSLATORS: Text rotation angle in degrees (0, 90, or 270), not temperature.
+#. Keep %d; use a suitable local degree symbol or abbreviation.
+#: dialogs.py:1490
+#, python-format
+msgid "%d°"
+msgstr ""
+
+#: dialogs.py:1491
 msgid "Rotate the selected text field"
 msgstr ""
 
-#: dialogs.py:1493
+#: dialogs.py:1495
 msgid "Placement:"
 msgstr ""
 
-#: dialogs.py:1500
+#: dialogs.py:1502
 msgid "Place vertical text along the left or right edge"
 msgstr ""
 
-#: dialogs.py:1514
+#: dialogs.py:1516
 msgid "Data:"
 msgstr ""
 
-#: dialogs.py:1519
+#: dialogs.py:1521
 msgid "Text:"
 msgstr ""
 
-#: dialogs.py:1531
+#: dialogs.py:1533
 msgid "Swap author LN,FN to FN LN"
 msgstr ""
 
-#: dialogs.py:1532
+#: dialogs.py:1534
 msgid ""
 "Use this option if your authors are stored as LN, FN\n"
 "but you prefer to see FN LN on the book cover"
 msgstr ""
 
-#: dialogs.py:1536
+#: dialogs.py:1538
 msgid "Series text:"
 msgstr ""
 
-#: dialogs.py:1537
+#: dialogs.py:1539
 msgid ""
 "Change the way series information is displayed.\n"
 "Useful for non-English languages!"
 msgstr ""
 
-#: dialogs.py:1598
+#: dialogs.py:1600
 msgid "Cover Options"
 msgstr ""
 
-#: dialogs.py:1602
+#: dialogs.py:1604
 msgid "Generate Custom Cover"
 msgstr ""
 
-#: dialogs.py:1622
+#: dialogs.py:1624
 msgid "Settings"
 msgstr ""
 
-#: dialogs.py:1623
+#: dialogs.py:1625
 msgid "Dimensions"
 msgstr ""
 
-#: dialogs.py:1624
+#: dialogs.py:1626
 msgid "Contents"
 msgstr ""
 
-#: dialogs.py:1636
+#: dialogs.py:1638
 msgid " Revert "
 msgstr ""
 
-#: dialogs.py:1637
+#: dialogs.py:1639
 msgid "Revert to your previous saved setting values"
 msgstr ""
 
-#: dialogs.py:1639
+#: dialogs.py:1641
 msgid " Save "
 msgstr ""
 
-#: dialogs.py:1640
+#: dialogs.py:1642
 msgid "Overwrite your current saved setting"
 msgstr ""
 
-#: dialogs.py:1642
+#: dialogs.py:1644
 msgid " Customize... "
 msgstr ""
 
-#: dialogs.py:1643
+#: dialogs.py:1645
 msgid "Set general options for this plugin"
 msgstr ""
 
-#: dialogs.py:1721
+#: dialogs.py:1723
+#, python-format
 msgid "Revert to your previously saved values for '%s'?"
 msgstr ""
 
-#: dialogs.py:1740
+#: dialogs.py:1742
+#, python-format
 msgid "Overwrite the '%s' setting with the current values?"
 msgstr ""
-
