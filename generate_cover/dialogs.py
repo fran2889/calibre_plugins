@@ -1485,7 +1485,9 @@ class ContentsTab(QWidget):
         self.font_rotation_combo = QComboBox(self)
         self.font_rotation_combo.setMinimumWidth(75)
         for angle in (0, 90, 270):
-            self.font_rotation_combo.addItem(u'%d\u00b0' % angle, angle)
+            # TRANSLATORS: Text rotation angle in degrees (0, 90, or 270), not temperature.
+            # Keep %d; use a suitable local degree symbol or abbreviation.
+            self.font_rotation_combo.addItem(_(u'%d\u00b0') % angle, angle)
         self.font_rotation_combo.setToolTip(_('Rotate the selected text field'))
         self.font_rotation_combo.currentIndexChanged.connect(
             self.parent_dialog.font_options_changed)
