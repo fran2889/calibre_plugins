@@ -83,7 +83,7 @@ class GenerateCoverAction(InterfaceAction):
         saved_settings = cfg.plugin_prefs[cfg.STORE_SAVED_SETTINGS]
         for setting_name, setting in six.iteritems(saved_settings):
             if setting_name != setting[cfg.KEY_NAME]:
-                failures.append(_('Corrupted setting: "%s" has incorrect internal name of: "%s")')%(setting_name, setting[cfg.KEY_NAME]))
+                failures.append(_('Corrupted setting: "%(setting_name)s" has incorrect internal name of: "%(internal_name)s")')%{'setting_name': setting_name, 'internal_name': setting[cfg.KEY_NAME]})
                 setting[cfg.KEY_NAME] = setting_name
         if len(failures):
             cfg.plugin_prefs[cfg.STORE_SAVED_SETTINGS] = saved_settings

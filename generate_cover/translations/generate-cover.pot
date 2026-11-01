@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Generate Cover\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-01 12:10+0100\n"
+"POT-Creation-Date: 2026-11-01 22:50+1000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -111,7 +111,7 @@ msgstr ""
 
 #: action.py:86
 #, python-format
-msgid "Corrupted setting: \"%s\" has incorrect internal name of: \"%s\")"
+msgid "Corrupted setting: \"%(setting_name)s\" has incorrect internal name of: \"%(internal_name)s\")"
 msgstr ""
 
 #: action.py:90
